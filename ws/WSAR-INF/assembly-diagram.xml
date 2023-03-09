@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wdnm:Diagram xmlns:wdnm="http://workday.com/studio/editors/notation">
+  <element href="assembly.xml#WorkdayAssembly"/>
+  <visualProperties x="73" y="76">
+    <element href="assembly.xml#StartHere"/>
+  </visualProperties>
+  <visualProperties x="167" y="98">
+    <element href="assembly.xml#AsyncMediationRequest"/>
+  </visualProperties>
+  <visualProperties x="301" y="135">
+    <element href="assembly.xml#AsyncMediationLogResponse"/>
+  </visualProperties>
+  <visualProperties x="303" y="122">
+    <element href="assembly.xml#WorkdayOutSoap"/>
+  </visualProperties>
+  <connections type="routesTo" sourceAnchorX="0.875" sourceAnchorY="1.0" targetAnchorX="0.05660377358490566" targetAnchorY="0.21739130434782608">
+    <source href="assembly.xml#StartHere"/>
+    <target href="assembly.xml#AsyncMediationRequest"/>
+  </connections>
+  <connections type="routesTo" sourceAnchorX="1.0" sourceAnchorY="0.358695652173913" targetAnchorX="0.109375" targetAnchorY="0.3783783783783784">
+    <source href="assembly.xml#AsyncMediationRequest"/>
+    <target href="assembly.xml#WorkdayOutSoap"/>
+  </connections>
+  <connections type="routesResponseTo" sourceAnchorX="0.7578125" sourceAnchorY="1.0" targetAnchorX="0.04504504504504504" targetAnchorY="0.16304347826086957">
+    <source href="assembly.xml#WorkdayOutSoap"/>
+    <target href="assembly.xml#AsyncMediationLogResponse"/>
+  </connections>
+  <swimlanes x="48" y="34" name="Swimlane">
+    <elements href="assembly.xml#StartHere"/>
+    <elements href="assembly.xml#AsyncMediationRequest"/>
+    <elements href="assembly.xml#WorkdayOutSoap"/>
+    <elements href="assembly.xml#AsyncMediationLogResponse"/>
+  </swimlanes>
+</wdnm:Diagram>

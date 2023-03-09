@@ -1,7 +1,864 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:beans="http://www.springframework.org/schema/beans" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:cc="http://www.capeclear.com/assembly/10" xmlns:cloud="urn:com.workday/esb/cloud/10.0" xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pi="urn:com.workday/picof" xmlns:wd="urn:com.workday/bsvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<beans
+     xmlns="http://www.springframework.org/schema/beans"
+     xmlns:beans="http://www.springframework.org/schema/beans"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:cc="http://www.capeclear.com/assembly/10"
+     xmlns:cloud="urn:com.workday/esb/cloud/10.0"
+     xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+     xmlns:pi="urn:com.workday/picof"
+     xmlns:wd="urn:com.workday/bsvc"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
  
 	<cc:assembly id="WorkdayAssembly" version="2022.37">
+        <cc:workday-in id="StartHere" routes-to="AsyncMediationRequest">
+            <cc:integration-system name="ASULocationsOutbound"/>
+        </cc:workday-in>
+        <cc:async-mediation id="AsyncMediationRequest" routes-to="WorkdayOutSoap">
+            <cc:steps>
+                <cc:write id="Write">
+                    <cc:message>
+                        <cc:text>&lt;?xml version=&quot;1.0&quot; ?>
+&lt;env:Envelope xmlns:env=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;>
+    &lt;env:Body>
+        &lt;wd:Get_Locations_Request xmlns:wd=&quot;urn:com.workday/bsvc&quot; wd:version=&quot;v40.0&quot;>
+            &lt;wd:Response_Filter>
+                &lt;wd:Page>1&lt;/wd:Page>
+                &lt;wd:Count>10&lt;/wd:Count>
+            &lt;/wd:Response_Filter>
+            &lt;wd:Response_Group>
+                &lt;wd:Include_Location_Data>true&lt;/wd:Include_Location_Data>
+            &lt;/wd:Response_Group>
+        &lt;/wd:Get_Locations_Request>
+    &lt;/env:Body>
+&lt;/env:Envelope></cc:text>
+                    </cc:message>
+                </cc:write>
+                <cc:write id="WriteSchemaToVar" output="variable" output-mimetype="text/xml" output-variable="ResponseSchema">
+                    <cc:message>
+                        <cc:text>&lt;?xml version='1.0' encoding='UTF-8'?>
+&lt;xs:schema attributeFormDefault=&quot;unqualified&quot; elementFormDefault=&quot;qualified&quot;
+    targetNamespace=&quot;urn:com.workday/bsvc&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;>
+    &lt;xs:element name=&quot;Get_Locations_Response&quot;>
+        &lt;xs:complexType>
+            &lt;xs:sequence>
+                &lt;xs:element name=&quot;Response_Filter&quot;>
+                    &lt;xs:complexType>
+                        &lt;xs:sequence>
+                            &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Page&quot; />
+                            &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Count&quot; />
+                        &lt;/xs:sequence>
+                    &lt;/xs:complexType>
+                &lt;/xs:element>
+                &lt;xs:element name=&quot;Response_Group&quot;>
+                    &lt;xs:complexType>
+                        &lt;xs:sequence>
+                            &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Include_Location_Data&quot; />
+                        &lt;/xs:sequence>
+                    &lt;/xs:complexType>
+                &lt;/xs:element>
+                &lt;xs:element name=&quot;Response_Results&quot;>
+                    &lt;xs:complexType>
+                        &lt;xs:sequence>
+                            &lt;xs:element type=&quot;xs:short&quot; name=&quot;Total_Results&quot; />
+                            &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Total_Pages&quot; />
+                            &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Page_Results&quot; />
+                            &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Page&quot; />
+                        &lt;/xs:sequence>
+                    &lt;/xs:complexType>
+                &lt;/xs:element>
+                &lt;xs:element name=&quot;Response_Data&quot;>
+                    &lt;xs:complexType>
+                        &lt;xs:sequence>
+                            &lt;xs:element name=&quot;Location&quot; maxOccurs=&quot;unbounded&quot; minOccurs=&quot;0&quot;>
+                                &lt;xs:complexType>
+                                    &lt;xs:sequence>
+                                        &lt;xs:element name=&quot;Location_Data&quot;>
+                                            &lt;xs:complexType>
+                                                &lt;xs:sequence>
+                                                    &lt;xs:element type=&quot;xs:string&quot; name=&quot;Location_ID&quot; />
+                                                    &lt;xs:element type=&quot;xs:string&quot;
+                                                        name=&quot;Location_Name&quot; />
+                                                    &lt;xs:element name=&quot;Location_Usage_Reference&quot;
+                                                        maxOccurs=&quot;unbounded&quot; minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:choice maxOccurs=&quot;unbounded&quot;
+                                                                minOccurs=&quot;0&quot;>
+                                                                &lt;xs:element name=&quot;ID&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:choice>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Location_Type_Reference&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Superior_Location_Reference&quot;
+                                                        minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Inactive&quot; />
+                                                    &lt;xs:element type=&quot;xs:float&quot; name=&quot;Latitude&quot; />
+                                                    &lt;xs:element type=&quot;xs:float&quot; name=&quot;Longitude&quot; />
+                                                    &lt;xs:element type=&quot;xs:byte&quot; name=&quot;Altitude&quot; />
+                                                    &lt;xs:element name=&quot;Time_Profile_Reference&quot;
+                                                        minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Locale_Reference&quot;
+                                                        minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Time_Zone_Reference&quot;
+                                                        minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Default_Currency_Reference&quot;
+                                                        minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Contact_Data&quot; minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;Address_Data&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:sequence>
+                                                                            &lt;xs:element
+                                                                                name=&quot;Country_Reference&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;ID&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:simpleContent>
+                                                                                                    &lt;xs:extension
+                                                                                                        base=&quot;xs:string&quot;>
+                                                                                                        &lt;xs:attribute
+                                                                                                            type=&quot;xs:string&quot;
+                                                                                                            name=&quot;type&quot;
+                                                                                                            use=&quot;optional&quot; />
+                                                                                                    &lt;/xs:extension>
+                                                                                                &lt;/xs:simpleContent>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:dateTime&quot;
+                                                                                name=&quot;Last_Modified&quot; />
+                                                                            &lt;xs:element
+                                                                                name=&quot;Address_Line_Data&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:simpleContent>
+                                                                                        &lt;xs:extension
+                                                                                            base=&quot;xs:string&quot;>
+                                                                                            &lt;xs:attribute
+                                                                                                type=&quot;xs:string&quot;
+                                                                                                name=&quot;Type&quot;
+                                                                                                use=&quot;optional&quot; />
+                                                                                            &lt;xs:attribute
+                                                                                                type=&quot;xs:string&quot;
+                                                                                                name=&quot;Descriptor&quot;
+                                                                                                use=&quot;optional&quot; />
+                                                                                        &lt;/xs:extension>
+                                                                                    &lt;/xs:simpleContent>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;Municipality&quot; />
+                                                                            &lt;xs:element
+                                                                                name=&quot;Country_Region_Reference&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;ID&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:simpleContent>
+                                                                                                    &lt;xs:extension
+                                                                                                        base=&quot;xs:string&quot;>
+                                                                                                        &lt;xs:attribute
+                                                                                                            type=&quot;xs:string&quot;
+                                                                                                            name=&quot;type&quot;
+                                                                                                            use=&quot;optional&quot; />
+                                                                                                    &lt;/xs:extension>
+                                                                                                &lt;/xs:simpleContent>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;Country_Region_Descriptor&quot; />
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:short&quot;
+                                                                                name=&quot;Postal_Code&quot;
+                                                                                minOccurs=&quot;0&quot; />
+                                                                            &lt;xs:element
+                                                                                name=&quot;Usage_Data&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Type_Data&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;Type_Reference&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:sequence>
+                                                                                                                &lt;xs:element
+                                                                                                                    name=&quot;ID&quot;
+                                                                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                                                                    minOccurs=&quot;0&quot;>
+                                                                                                                    &lt;xs:complexType>
+                                                                                                                        &lt;xs:simpleContent>
+                                                                                                                            &lt;xs:extension
+                                                                                                                                base=&quot;xs:string&quot;>
+                                                                                                                                &lt;xs:attribute
+                                                                                                                                    type=&quot;xs:string&quot;
+                                                                                                                                    name=&quot;type&quot;
+                                                                                                                                    use=&quot;optional&quot; />
+                                                                                                                            &lt;/xs:extension>
+                                                                                                                        &lt;/xs:simpleContent>
+                                                                                                                    &lt;/xs:complexType>
+                                                                                                                &lt;/xs:element>
+                                                                                                            &lt;/xs:sequence>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                                &lt;xs:attribute
+                                                                                                    type=&quot;xs:byte&quot;
+                                                                                                    name=&quot;Primary&quot;
+                                                                                                    use=&quot;optional&quot; />
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Use_For_Reference&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;ID&quot;
+                                                                                                        maxOccurs=&quot;unbounded&quot;
+                                                                                                        minOccurs=&quot;0&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:simpleContent>
+                                                                                                                &lt;xs:extension
+                                                                                                                    base=&quot;xs:string&quot;>
+                                                                                                                    &lt;xs:attribute
+                                                                                                                        type=&quot;xs:string&quot;
+                                                                                                                        name=&quot;type&quot;
+                                                                                                                        use=&quot;optional&quot; />
+                                                                                                                &lt;/xs:extension>
+                                                                                                            &lt;/xs:simpleContent>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Use_For_Tenanted_Reference&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;ID&quot;
+                                                                                                        maxOccurs=&quot;unbounded&quot;
+                                                                                                        minOccurs=&quot;0&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:simpleContent>
+                                                                                                                &lt;xs:extension
+                                                                                                                    base=&quot;xs:string&quot;>
+                                                                                                                    &lt;xs:attribute
+                                                                                                                        type=&quot;xs:string&quot;
+                                                                                                                        name=&quot;type&quot;
+                                                                                                                        use=&quot;optional&quot; />
+                                                                                                                &lt;/xs:extension>
+                                                                                                            &lt;/xs:simpleContent>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                    &lt;xs:attribute
+                                                                                        type=&quot;xs:byte&quot;
+                                                                                        name=&quot;Public&quot;
+                                                                                        use=&quot;optional&quot; />
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:byte&quot;
+                                                                                name=&quot;Number_of_Days&quot; />
+                                                                            &lt;xs:element
+                                                                                name=&quot;Address_Reference&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;ID&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:simpleContent>
+                                                                                                    &lt;xs:extension
+                                                                                                        base=&quot;xs:string&quot;>
+                                                                                                        &lt;xs:attribute
+                                                                                                            type=&quot;xs:string&quot;
+                                                                                                            name=&quot;type&quot;
+                                                                                                            use=&quot;optional&quot; />
+                                                                                                    &lt;/xs:extension>
+                                                                                                &lt;/xs:simpleContent>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;Address_ID&quot; />
+                                                                        &lt;/xs:sequence>
+                                                                        &lt;xs:attribute type=&quot;xs:date&quot;
+                                                                            name=&quot;Effective_Date&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;Address_Format_Type&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;Formatted_Address&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute type=&quot;xs:byte&quot;
+                                                                            name=&quot;Defaulted_Business_Site_Address&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                                &lt;xs:element name=&quot;Phone_Data&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:sequence>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;Country_ISO_Code&quot; />
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:short&quot;
+                                                                                name=&quot;International_Phone_Code&quot; />
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;Phone_Number&quot; />
+                                                                            &lt;xs:element
+                                                                                name=&quot;Phone_Device_Type_Reference&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;ID&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:simpleContent>
+                                                                                                    &lt;xs:extension
+                                                                                                        base=&quot;xs:string&quot;>
+                                                                                                        &lt;xs:attribute
+                                                                                                            type=&quot;xs:string&quot;
+                                                                                                            name=&quot;type&quot;
+                                                                                                            use=&quot;optional&quot; />
+                                                                                                    &lt;/xs:extension>
+                                                                                                &lt;/xs:simpleContent>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                name=&quot;Usage_Data&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Type_Data&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;Type_Reference&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:sequence>
+                                                                                                                &lt;xs:element
+                                                                                                                    name=&quot;ID&quot;
+                                                                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                                                                    minOccurs=&quot;0&quot;>
+                                                                                                                    &lt;xs:complexType>
+                                                                                                                        &lt;xs:simpleContent>
+                                                                                                                            &lt;xs:extension
+                                                                                                                                base=&quot;xs:string&quot;>
+                                                                                                                                &lt;xs:attribute
+                                                                                                                                    type=&quot;xs:string&quot;
+                                                                                                                                    name=&quot;type&quot;
+                                                                                                                                    use=&quot;optional&quot; />
+                                                                                                                            &lt;/xs:extension>
+                                                                                                                        &lt;/xs:simpleContent>
+                                                                                                                    &lt;/xs:complexType>
+                                                                                                                &lt;/xs:element>
+                                                                                                            &lt;/xs:sequence>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                                &lt;xs:attribute
+                                                                                                    type=&quot;xs:byte&quot;
+                                                                                                    name=&quot;Primary&quot;
+                                                                                                    use=&quot;optional&quot; />
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Use_For_Reference&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;ID&quot;
+                                                                                                        maxOccurs=&quot;unbounded&quot;
+                                                                                                        minOccurs=&quot;0&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:simpleContent>
+                                                                                                                &lt;xs:extension
+                                                                                                                    base=&quot;xs:string&quot;>
+                                                                                                                    &lt;xs:attribute
+                                                                                                                        type=&quot;xs:string&quot;
+                                                                                                                        name=&quot;type&quot;
+                                                                                                                        use=&quot;optional&quot; />
+                                                                                                                &lt;/xs:extension>
+                                                                                                            &lt;/xs:simpleContent>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Use_For_Tenanted_Reference&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;ID&quot;
+                                                                                                        maxOccurs=&quot;unbounded&quot;
+                                                                                                        minOccurs=&quot;0&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:simpleContent>
+                                                                                                                &lt;xs:extension
+                                                                                                                    base=&quot;xs:string&quot;>
+                                                                                                                    &lt;xs:attribute
+                                                                                                                        type=&quot;xs:string&quot;
+                                                                                                                        name=&quot;type&quot;
+                                                                                                                        use=&quot;optional&quot; />
+                                                                                                                &lt;/xs:extension>
+                                                                                                            &lt;/xs:simpleContent>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                    &lt;xs:attribute
+                                                                                        type=&quot;xs:byte&quot;
+                                                                                        name=&quot;Public&quot;
+                                                                                        use=&quot;optional&quot; />
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                name=&quot;Phone_Reference&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;ID&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:simpleContent>
+                                                                                                    &lt;xs:extension
+                                                                                                        base=&quot;xs:string&quot;>
+                                                                                                        &lt;xs:attribute
+                                                                                                            type=&quot;xs:string&quot;
+                                                                                                            name=&quot;type&quot;
+                                                                                                            use=&quot;optional&quot; />
+                                                                                                    &lt;/xs:extension>
+                                                                                                &lt;/xs:simpleContent>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;ID&quot; />
+                                                                        &lt;/xs:sequence>
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;Phone_Number_Without_Area_Code&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;E164_Formatted_Phone&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;Workday_Traditional_Formatted_Phone&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;National_Formatted_Phone&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;International_Formatted_Phone&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:string&quot;
+                                                                            name=&quot;Tenant_Formatted_Phone&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                        &lt;xs:attribute
+                                                                            type=&quot;xs:short&quot;
+                                                                            name=&quot;Area_Code&quot;
+                                                                            use=&quot;optional&quot; />
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                                &lt;xs:element
+                                                                    name=&quot;Email_Address_Data&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:sequence>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;Email_Address&quot; />
+                                                                            &lt;xs:element
+                                                                                name=&quot;Usage_Data&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Type_Data&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;Type_Reference&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:sequence>
+                                                                                                                &lt;xs:element
+                                                                                                                    name=&quot;ID&quot;
+                                                                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                                                                    minOccurs=&quot;0&quot;>
+                                                                                                                    &lt;xs:complexType>
+                                                                                                                        &lt;xs:simpleContent>
+                                                                                                                            &lt;xs:extension
+                                                                                                                                base=&quot;xs:string&quot;>
+                                                                                                                                &lt;xs:attribute
+                                                                                                                                    type=&quot;xs:string&quot;
+                                                                                                                                    name=&quot;type&quot;
+                                                                                                                                    use=&quot;optional&quot; />
+                                                                                                                            &lt;/xs:extension>
+                                                                                                                        &lt;/xs:simpleContent>
+                                                                                                                    &lt;/xs:complexType>
+                                                                                                                &lt;/xs:element>
+                                                                                                            &lt;/xs:sequence>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                                &lt;xs:attribute
+                                                                                                    type=&quot;xs:byte&quot;
+                                                                                                    name=&quot;Primary&quot;
+                                                                                                    use=&quot;optional&quot; />
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Use_For_Reference&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;ID&quot;
+                                                                                                        maxOccurs=&quot;unbounded&quot;
+                                                                                                        minOccurs=&quot;0&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:simpleContent>
+                                                                                                                &lt;xs:extension
+                                                                                                                    base=&quot;xs:string&quot;>
+                                                                                                                    &lt;xs:attribute
+                                                                                                                        type=&quot;xs:string&quot;
+                                                                                                                        name=&quot;type&quot;
+                                                                                                                        use=&quot;optional&quot; />
+                                                                                                                &lt;/xs:extension>
+                                                                                                            &lt;/xs:simpleContent>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;Use_For_Tenanted_Reference&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:sequence>
+                                                                                                    &lt;xs:element
+                                                                                                        name=&quot;ID&quot;
+                                                                                                        maxOccurs=&quot;unbounded&quot;
+                                                                                                        minOccurs=&quot;0&quot;>
+                                                                                                        &lt;xs:complexType>
+                                                                                                            &lt;xs:simpleContent>
+                                                                                                                &lt;xs:extension
+                                                                                                                    base=&quot;xs:string&quot;>
+                                                                                                                    &lt;xs:attribute
+                                                                                                                        type=&quot;xs:string&quot;
+                                                                                                                        name=&quot;type&quot;
+                                                                                                                        use=&quot;optional&quot; />
+                                                                                                                &lt;/xs:extension>
+                                                                                                            &lt;/xs:simpleContent>
+                                                                                                        &lt;/xs:complexType>
+                                                                                                    &lt;/xs:element>
+                                                                                                &lt;/xs:sequence>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                    &lt;xs:attribute
+                                                                                        type=&quot;xs:byte&quot;
+                                                                                        name=&quot;Public&quot;
+                                                                                        use=&quot;optional&quot; />
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                name=&quot;Email_Reference&quot;>
+                                                                                &lt;xs:complexType>
+                                                                                    &lt;xs:sequence>
+                                                                                        &lt;xs:element
+                                                                                            name=&quot;ID&quot;
+                                                                                            maxOccurs=&quot;unbounded&quot;
+                                                                                            minOccurs=&quot;0&quot;>
+                                                                                            &lt;xs:complexType>
+                                                                                                &lt;xs:simpleContent>
+                                                                                                    &lt;xs:extension
+                                                                                                        base=&quot;xs:string&quot;>
+                                                                                                        &lt;xs:attribute
+                                                                                                            type=&quot;xs:string&quot;
+                                                                                                            name=&quot;type&quot;
+                                                                                                            use=&quot;optional&quot; />
+                                                                                                    &lt;/xs:extension>
+                                                                                                &lt;/xs:simpleContent>
+                                                                                            &lt;/xs:complexType>
+                                                                                        &lt;/xs:element>
+                                                                                    &lt;/xs:sequence>
+                                                                                &lt;/xs:complexType>
+                                                                            &lt;/xs:element>
+                                                                            &lt;xs:element
+                                                                                type=&quot;xs:string&quot;
+                                                                                name=&quot;ID&quot; />
+                                                                        &lt;/xs:sequence>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Integration_ID_Data&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;System_ID&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                    &lt;xs:element name=&quot;Location_Hierarchy_Reference&quot;
+                                                        minOccurs=&quot;0&quot;>
+                                                        &lt;xs:complexType>
+                                                            &lt;xs:sequence>
+                                                                &lt;xs:element name=&quot;ID&quot;
+                                                                    maxOccurs=&quot;unbounded&quot;
+                                                                    minOccurs=&quot;0&quot;>
+                                                                    &lt;xs:complexType>
+                                                                        &lt;xs:simpleContent>
+                                                                            &lt;xs:extension
+                                                                                base=&quot;xs:string&quot;>
+                                                                                &lt;xs:attribute
+                                                                                    type=&quot;xs:string&quot;
+                                                                                    name=&quot;type&quot;
+                                                                                    use=&quot;optional&quot; />
+                                                                            &lt;/xs:extension>
+                                                                        &lt;/xs:simpleContent>
+                                                                    &lt;/xs:complexType>
+                                                                &lt;/xs:element>
+                                                            &lt;/xs:sequence>
+                                                        &lt;/xs:complexType>
+                                                    &lt;/xs:element>
+                                                &lt;/xs:sequence>
+                                            &lt;/xs:complexType>
+                                        &lt;/xs:element>
+                                    &lt;/xs:sequence>
+                                &lt;/xs:complexType>
+                            &lt;/xs:element>
+                        &lt;/xs:sequence>
+                    &lt;/xs:complexType>
+                &lt;/xs:element>
+            &lt;/xs:sequence>
+            &lt;xs:attribute type=&quot;xs:string&quot; name=&quot;version&quot; />
+        &lt;/xs:complexType>
+    &lt;/xs:element>
+&lt;/xs:schema></cc:text>
+                    </cc:message>
+                </cc:write>
+            </cc:steps>
+        </cc:async-mediation>
+        <cc:async-mediation id="AsyncMediationLogResponse">
+            <cc:steps>
+                <cc:log id="Log" level="info">
+                    <cc:log-message>
+                        <cc:message-content/>
+                    </cc:log-message>
+                </cc:log>
+                <cc:xml-to-json id="XmlToJson" output-mimetype="application/json" input="message" schema="variable" schema-variable="ResponseSchema"/>
+                <cc:log id="Log0">
+                    <cc:log-message>
+                        <cc:message-content/>
+                    </cc:log-message>
+                </cc:log>
+            </cc:steps>
+        </cc:async-mediation>
+        <cc:workday-out-soap id="WorkdayOutSoap" routes-response-to="AsyncMediationLogResponse" application="Human_Resources" version="v40.0"/>
 	</cc:assembly>
 
 </beans>
